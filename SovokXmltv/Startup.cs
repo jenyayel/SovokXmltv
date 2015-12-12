@@ -1,15 +1,14 @@
 ﻿using System;
 using SovokXmltv.Helpers;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Diagnostics;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using System.Net.Http;
-using Newtonsoft.Json;
 using SovokXmltv.Models;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace SovokXmltv
 {
@@ -33,6 +32,9 @@ namespace SovokXmltv
 
             app.Run(async (context) =>
             {
+                Stopwatch watch = new Stopwatch();
+                watch.Start();
+
                 var user = context.Request.Query["user"];
                 var password = context.Request.Query["password"];
 
@@ -46,33 +48,56 @@ namespace SovokXmltv
                 using (HttpClient client = new HttpClient())
                 {
                     client.Timeout = TimeSpan.FromMinutes(60);
-                    var loginResult = await client.GetStringAsync<LoginApiResponse>($"{API_ENDPOINT}/login?login={user}&pass={password}");
-                    if (loginResult.Error != null)
+                    var loginResult = await client.GetApiResultAsync<LoginApiResponse>($"{API_ENDPOINT}/login?login={user}&pass={password}");
+                    if (loginResult == null || loginResult.Error != null)
                     {
-                        await context.SetError(400, loginResult.Error.Message);
+                        await context.SetError(400, loginResult?.Error.Message);
                         return;
                     }
 
                     client.DefaultRequestHeaders.Add("Cookie", $"{loginResult.SessionCookieName}={loginResult.SessionCookieValue}");
-                    var channelResult = await client.GetStringAsync<ChannelsListApiResponse>($"{API_ENDPOINT}/channel_list2");
-                    if (channelResult.Error != null)
+                    var channelResult = await client.GetApiResultAsync<ChannelsListApiResponse>($"{API_ENDPOINT}/channel_list2");
+                    if (channelResult == null || channelResult.Error != null)
                     {
-                        await context.SetError(400, channelResult.Error.Message);
+                        await context.SetError(400, channelResult?.Error.Message);
                         return;
                     }
 
-                    var today = DateTime.Now.ToString("ddMMyy"); // TODO: timezone missing
+                    var today = DateTime.UtcNow.ToString("ddMMyy"); // TODO: timezone missing
                     var tasks = channelResult
                         .Channels
-                        .Select(c => client.GetStringAsync<EpgApiResponse>($"{API_ENDPOINT}/epg?cid={c.Id}&day={today}"))
+                        .Select(c => client.GetApiResultAsync<EpgApiResponse>($"{API_ENDPOINT}/epg?cid={c.Id}&day={today}", c, true))
                         .ToArray();
 
-                    var fullEpg = await Task.WhenAll(tasks);
+                    EpgApiResponse[] fullEpg = null;
+                    try
+                    {
+                        fullEpg = await Task.WhenAll(tasks);
+                    }
+                    catch (Exception e)
+                    {
+                        Trace.TraceError($"Some tasks failed to finish due to {e}");
+                    }
 
+                    if (fullEpg == null)
+                    {
+                        await context.SetError(400, "Failed to get EPG");
+                        return;
+                    }
 
-                    await context.Response.WriteAsync(JsonConvert.SerializeObject(fullEpg), System.Text.Encoding.UTF8);
+                    var epgErrors = fullEpg.Where(c => c != null && c.Error != null);
+
+                    foreach (var c in epgErrors)
+                        Trace.TraceError($"API returned error [{c.Error.Message}] for channel {(c.Context as ApiChannel)?.Id}.");
+
+                    var epgSuccess = fullEpg.Where(c => c != null && c.Error == null);
+                    
+                    // TODO: build XML
+
+                    await context.Response.WriteAsync($"Got EPG for {epgSuccess.Count()}");
                 }
-
+                watch.Stop();
+                Trace.TraceInformation($"All done in {watch.Elapsed}");
             });
         }
 

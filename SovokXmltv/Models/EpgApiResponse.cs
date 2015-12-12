@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace SovokXmltv.Models
 {
-    public class EpgApiResponse
+    public class EpgApiResponse : BaseApiResponse
     {
         [JsonProperty(PropertyName = "epg")]
         public ApiProgram[] Programs { get; set; }

@@ -1,4 +1,6 @@
 ﻿
+using Newtonsoft.Json;
+
 namespace SovokXmltv.Models
 {
     public abstract class BaseApiResponse
@@ -6,7 +8,8 @@ namespace SovokXmltv.Models
         public ApiError Error { get; set; }
 
         public double Servertime { get; set; }
-
+        
+        public object Context { get; set; }
     }
 
     public class ApiError

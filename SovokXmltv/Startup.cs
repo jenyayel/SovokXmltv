@@ -66,6 +66,7 @@ namespace SovokXmltv
                     var today = DateTime.UtcNow.ToString("ddMMyy"); // TODO: timezone missing
                     var tasks = channelResult
                         .Channels
+                        .Take(5)
                         .Select(c => client.GetApiResultAsync<EpgApiResponse>($"{API_ENDPOINT}/epg?cid={c.Id}&day={today}", c, true))
                         .ToArray();
 
@@ -86,15 +87,17 @@ namespace SovokXmltv
                     }
 
                     var epgErrors = fullEpg.Where(c => c != null && c.Error != null);
+                    var epgSuccess = fullEpg.Where(c => c != null && c.Error == null);
 
                     foreach (var c in epgErrors)
                         Trace.TraceError($"API returned error [{c.Error.Message}] for channel {(c.Context as ApiChannel)?.Id}.");
 
-                    var epgSuccess = fullEpg.Where(c => c != null && c.Error == null);
-                    
-                    // TODO: build XML
+                    Trace.TraceError($"Total channels are [{channelResult.Channels.Count()}] with [{epgErrors.Count()}] failed and [{epgSuccess.Count()}] succeed.");
 
-                    await context.Response.WriteAsync($"Got EPG for {epgSuccess.Count()}");
+                    // TODO: build XML
+                    context.Response.Headers.Add("content-type", "application/xml");
+                    await context.Response.WriteAsync("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
+                        "<!DOCTYPE tv SYSTEM \"xmltv.dtd\"><tv></tv>");
                 }
                 watch.Stop();
                 Trace.TraceInformation($"All done in {watch.Elapsed}");

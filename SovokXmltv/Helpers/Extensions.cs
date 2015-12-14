@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using System.Xml;
 
 namespace SovokXmltv.Helpers
 {
@@ -69,6 +70,26 @@ namespace SovokXmltv.Helpers
                 await self.Response.WriteAsync(message);
             else
                 await Task.FromResult(0);
+        }
+
+        public static void WriteStartElement(this XmlWriter self, string name)
+        {
+            self.WriteStartElement(name, null);
+        }
+        public static void WriteAttribute(this XmlWriter self, string name, object value)
+        {
+            self.WriteAttributeString(name, null, value is string ? (string)value : value.ToString());
+        }
+
+        public static DateTime ToDateTime(this double self)
+        {
+            var start = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+            return start.AddSeconds(self);
+        }
+
+        public static double ToUnixTime(this DateTime self)
+        {
+            return (self.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         }
     }
 }

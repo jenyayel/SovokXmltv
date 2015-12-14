@@ -10,6 +10,20 @@ namespace SovokXmltv.Models
         public ApiProgram[] Programs { get; set; }
     }
 
+    public class Epg3ApiResponse : BaseApiResponse
+    {
+        [JsonProperty(PropertyName = "epg3")]
+        public EpgApiChannel[] Channels { get; set; }
+    }
+
+    public class EpgApiChannel
+    {
+        public int Id { get; set; }
+
+        [JsonProperty(PropertyName = "epg")]
+        public ApiProgram[] Programs { get; set; }
+    }
+
     public class ApiProgram
     {
         [JsonProperty(PropertyName = "progname")]

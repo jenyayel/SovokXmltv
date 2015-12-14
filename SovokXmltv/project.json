@@ -5,13 +5,13 @@
   },
 
   "dependencies": {
+    "Microsoft.AspNet.Diagnostics": "1.0.0-rc1-final",
     "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
     "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",
-    "System.Net.Http": "4.0.0",
+    "Microsoft.Extensions.Caching.Memory": "1.0.0-rc1-final",
     "Newtonsoft.Json": "7.0.1",
-    "Microsoft.AspNet.Diagnostics": "1.0.0-rc1-final",
     "Polly": "2.2.4",
-    "Microsoft.Extensions.Caching.Memory": "1.0.0-rc1-final"
+    "System.Net.Http": "4.0.0"
   },
 
   "commands": {
@@ -22,6 +22,9 @@
     "dnx451": {
       "dependencies": {
         "Microsoft.Net.Http": "2.2.22"
+      },
+      "frameworkAssemblies": {
+        "System.Xml": "4.0.0.0"
       }
     }
   },

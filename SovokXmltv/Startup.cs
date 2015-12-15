@@ -17,7 +17,8 @@ namespace SovokXmltv
     {
         private const string API_ENDPOINT = "http://api.sovok.tv/v2.2/json";
         private const string ICONS_PREFIX_HOST = "http://sovok.tv";
-        private readonly StringValues EPG_DEFAULT_PERIOD = "12";
+        private readonly StringValues EPG_DEFAULT_PERIOD = "28";
+        private readonly TimeSpan EPG_START_FROM_NOW = TimeSpan.FromHours(-4);
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -65,7 +66,7 @@ namespace SovokXmltv
                     // prepare tasks for API calls
                     var settingsResultTask = client.GetApiResultAsync<SettingsApiResponse>($"{API_ENDPOINT}/settings");
                     var channelResultTask = client.GetApiResultAsync<ChannelsListApiResponse>($"{API_ENDPOINT}/channel_list2");
-                    var epgResultTask = client.GetApiResultAsync<Epg3ApiResponse>($"{API_ENDPOINT}/epg3?dtime={DateTime.UtcNow.ToUnixTime()}&period={period}");
+                    var epgResultTask = client.GetApiResultAsync<Epg3ApiResponse>($"{API_ENDPOINT}/epg3?dtime={DateTime.UtcNow.Add(EPG_START_FROM_NOW).ToUnixTime()}&period={period}");
 
                     // execute calls
                     await Task.WhenAll(new Task[] { settingsResultTask, channelResultTask, epgResultTask });
@@ -92,6 +93,8 @@ namespace SovokXmltv
                         return;
                     }
 
+                    var timezone = settingsResult.Settings.Timezone.Split(':')[0];
+
                     Trace.TraceError($"Total channels are [{channelResult.Channels.Count()}]; total channels in EPG [{epgResult.Channels.Count()}].");
 
                     // write output
@@ -108,7 +111,11 @@ namespace SovokXmltv
                             writer.WriteStartElement("channel");
                             writer.WriteAttribute("id", channel.Id);
 
-                            writer.WriteElementString("display-name", channel.Name);
+                            writer.WriteStartElement("display-name");
+                            writer.WriteAttribute("lang", "ru");
+                            writer.WriteValue(channel.Name);
+                            writer.WriteEndElement(); //display-name
+
                             writer.WriteStartElement("icon");
                             writer.WriteAttribute("src", ICONS_PREFIX_HOST + channel.Icon);
                             writer.WriteEndElement(); // icon
@@ -120,18 +127,32 @@ namespace SovokXmltv
 
                         foreach (var channel in epgResult.Channels)
                         {
-                            foreach (var programm in channel.Programs)
+                            for (int i = 0; i < channel.Programs.Length; i++)
                             {
+                                var programm = channel.Programs[i];
+                                var nextProgram = i == channel.Programs.Length - 1 ? null : channel.Programs[i+1];
+
                                 writer.WriteStartElement("programme");
                                 writer.WriteAttribute("channel", channel.Id);
                                 if (programm.ProgramStartDateTime != 0)
-                                    writer.WriteAttribute("start", programm.ProgramStartDateTime.ToDateTime().ToString("yyyyMMddHHmmss zz00"));
+                                    writer.WriteAttribute("start", programm.ProgramStartDateTime.ToDateTime().ToString($"yyyyMMddHHmmss {timezone}00"));
                                 if (programm.ProgramEndDateTime != 0)
-                                    writer.WriteAttribute("stop", programm.ProgramEndDateTime.ToDateTime().ToString("yyyyMMddHHmmss zz00"));
+                                    writer.WriteAttribute("stop", programm.ProgramEndDateTime.ToDateTime().ToString($"yyyyMMddHHmmss {timezone}00"));
+                                else if(nextProgram != null && nextProgram.ProgramStartDateTime != 0)
+                                    writer.WriteAttribute("stop", nextProgram.ProgramStartDateTime.ToDateTime().ToString($"yyyyMMddHHmmss {timezone}00"));
 
-                                writer.WriteElementString("title", programm.ProgramName);
+                                writer.WriteStartElement("title");
+                                writer.WriteAttribute("lang", "ru");
+                                writer.WriteValue(programm.ProgramName);
+                                writer.WriteEndElement(); //title
+
                                 if (!String.IsNullOrEmpty(programm.Description))
-                                    writer.WriteElementString("desc", programm.Description);
+                                {
+                                    writer.WriteStartElement("desc");
+                                    writer.WriteAttribute("lang", "ru");
+                                    writer.WriteValue(programm.Description);
+                                    writer.WriteEndElement(); //desc
+                                }
 
                                 writer.WriteEndElement(); //programme
                             }

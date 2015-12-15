@@ -4,7 +4,11 @@ namespace SovokXmltv.Models
 {
     public class SettingsApiResponse : BaseApiResponse
     {
-        [JsonProperty(PropertyName = "timezone")]
+        public ApiSettings Settings { get; set; }
+    }
+
+    public class ApiSettings
+    {
         public string Timezone { get; set; }
     }
 }

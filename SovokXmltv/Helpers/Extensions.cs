@@ -83,7 +83,7 @@ namespace SovokXmltv.Helpers
 
         public static DateTime ToDateTime(this double self)
         {
-            var start = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+            var start = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             return start.AddSeconds(self);
         }
 

@@ -1,12 +1,8 @@
 version: 1.0.{build}
 configuration: Release
 os: Visual Studio 2015
-install:
-- cmd: >-
-    set PATH=C:\Program Files (x86)\MSBuild\14.0\Bin;%PATH%
-    dnvm install 1.0.0-rc1-final
 build:
-  verbosity: minimal
+  verbosity: normal
 test: off
 deploy:
 - provider: Environment

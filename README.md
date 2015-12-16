@@ -1,5 +1,7 @@
 # SovokXmltv
 
+[![Build status](https://ci.appveyor.com/api/projects/status/chsydou48dpci70r?svg=true)](https://ci.appveyor.com/project/jenyayel/sovokxmltv)
+
 Simple proxy for [sovok.tv API](http://forum.sovok.tv/viewtopic.php?f=6&t=240), which expose channels information and EPG in [xmltv format](http://wiki.xmltv.org/index.php/XMLTVFormat). The application implemented in [dnx451](https://github.com/aspnet/home) framework.
 
 ## Usage

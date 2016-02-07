@@ -20,3 +20,8 @@ The channels and EPG retreived based on subscription level of the given account 
 ## Demo
 
 CI configured to [azure website](https://sovokxmltv.azurewebsites.net/?user=1111&password=1111).
+
+## Why credentials in query string?
+
+Although this is indeed a bad idea, I didn't find a better way to configure EPG in Kodi's [IPTV Simple Client](http://kodi.wiki/view/Add-on:IPTV_Simple_Client). The client is limited to the URL (or local path), which enforces to pass any parameter only via GET.
+

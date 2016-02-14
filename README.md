@@ -13,13 +13,13 @@ The endpoint is root of the web-application and accepts requests with the follow
 The parameters are:
 * `user` is the user name of account on sovok.tv
 * `password` the password of the account above
-* `period` is optiona parameter, specifies the period for which the EPG will be retreived.
+* `period` is optional parameter, specifies the period for which the EPG will be retreived.
 
 The channels and EPG retreived based on subscription level of the given account in sovok.tv.
 
 ## Demo
 
-CI configured to [azure website](https://sovokxmltv.azurewebsites.net/?user=1111&password=1111).
+CI configured to [azure website](https://sovokxmltv.azurewebsites.net/?user=1111&password=1111) with demo account.
 
 ## Why credentials in query string?
 

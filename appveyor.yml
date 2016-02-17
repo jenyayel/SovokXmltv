@@ -10,3 +10,5 @@ test: off
 deploy:
 - provider: Environment
   name: SovokXmltv
+  on:
+    branch: master

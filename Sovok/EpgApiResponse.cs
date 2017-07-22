@@ -1,8 +1,6 @@
-﻿
+﻿using Newtonsoft.Json;
 
-using Newtonsoft.Json;
-
-namespace SovokXmltv.Models
+namespace SovokXmltv.Sovok
 {
     public class EpgApiResponse : BaseApiResponse
     {

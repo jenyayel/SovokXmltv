@@ -1,7 +1,7 @@
 ﻿
 using Newtonsoft.Json;
 
-namespace SovokXmltv.Models
+namespace SovokXmltv.Sovok
 {
     public abstract class BaseApiResponse
     {

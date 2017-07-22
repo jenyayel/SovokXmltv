@@ -1,14 +1,13 @@
 version: 1.0.{build}
-configuration: Release
-os: Visual Studio 2015
-install:
-- set PATH=C:\Program Files (x86)\MSBuild\14.0\Bin;%PATH%
-- dnu restore
+image: Visual Studio 2017
 build:
+  project: /SovokXmltv.sln
   verbosity: normal
-test: off
 deploy:
 - provider: Environment
   name: SovokXmltv
   on:
     branch: master
+test: off
+install:
+- dotnet restore

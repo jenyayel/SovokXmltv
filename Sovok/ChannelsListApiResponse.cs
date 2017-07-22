@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace SovokXmltv.Models
+namespace SovokXmltv.Sovok
 {
     public class ChannelsListApiResponse : BaseApiResponse
     {

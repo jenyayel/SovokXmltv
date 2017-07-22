@@ -9,3 +9,5 @@ deploy:
   on:
     branch: master
 test: off
+install:
+- dotnet restore

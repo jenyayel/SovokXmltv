@@ -30,6 +30,12 @@ namespace SovokXmltv
 
             app.Run(async (context) =>
             {
+                if (context.Request.Path.Value != "/")
+                {
+                    context.Response.StatusCode = 404;
+                    return;
+                }
+
                 var user = context.Request.Query["user"];
                 var password = context.Request.Query["password"];
                 var period = context.Request.Query["period"];

@@ -30,8 +30,8 @@ namespace SovokXmltv.Sovok
         }
 
         public async Task<(SettingsApiResponse settings, ChannelsListApiResponse channels, Epg3ApiResponse epg)> GetAggregated(
-            string user, 
-            string password, 
+            string user,
+            string password,
             string period)
         {
             if (String.IsNullOrEmpty(user)) throw new ArgumentNullException(nameof(user));
@@ -78,7 +78,7 @@ namespace SovokXmltv.Sovok
             catch (Exception ex)
             {
                 _logger.LogError(1001, ex, $"Failed to get API response from [{requestUri}] due to {ex}");
-                return null;
+                throw ex;
             }
         }
 

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Polly;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -15,18 +14,12 @@ namespace SovokXmltv.Sovok
 
         private readonly HttpClient _client;
         private readonly ILogger<SovokClient> _logger;
-        private readonly Policy _requestPolicy;
 
 
         public SovokClient(ILogger<SovokClient> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = new HttpClient();
-            _requestPolicy = Policy
-                .Handle<HttpRequestException>()
-                .WaitAndRetryAsync(3,
-                (retryCount) => TimeSpan.FromMilliseconds(50 + (50 * retryCount)),
-                (ex, retryCount) => _logger.LogInformation($"Retrying {retryCount} time due to {ex}"));
         }
 
         public async Task<(SettingsApiResponse settings, ChannelsListApiResponse channels, Epg3ApiResponse epg)> GetAggregated(
@@ -70,15 +63,14 @@ namespace SovokXmltv.Sovok
 
         private async Task<T> getApi<T>(string requestUri) where T : BaseApiResponse
         {
-            try
+
+            using (var response = await _client.GetAsync(requestUri))
             {
-                return JsonConvert.DeserializeObject<T>(
-                    await _requestPolicy.ExecuteAsync(() => _client.GetStringAsync(requestUri)));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(1001, ex, $"Failed to get API response from [{requestUri}] due to {ex}");
-                throw ex;
+                var payload = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"API returned {response.StatusCode}: {payload}");
+
+                return JsonConvert.DeserializeObject<T>(payload);
             }
         }
 

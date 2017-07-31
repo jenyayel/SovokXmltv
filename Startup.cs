@@ -12,7 +12,7 @@ namespace SovokXmltv
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<SovokClient>();
+            services.AddScoped<SovokClient>();
         }
 
         public void Configure(
@@ -40,24 +40,27 @@ namespace SovokXmltv
                 var password = context.Request.Query["password"];
                 var period = context.Request.Query["period"];
 
-                (SettingsApiResponse settings, ChannelsListApiResponse channels, Epg3ApiResponse epg) apiResult;
+                using (var scope = serviceProvider.CreateScope())
+                {
+                    (SettingsApiResponse settings, ChannelsListApiResponse channels, Epg3ApiResponse epg) apiResult;
 
-                try
-                {
-                    apiResult = await serviceProvider.GetService<SovokClient>().GetAggregated(user, password, period);
-                }
-                catch (Exception ex)
-                {
-                    context.Response.StatusCode = 400;
-                    var buffer = Encoding.UTF8.GetBytes(ex.Message);
-                    await context.Response.Body.WriteAsync(buffer, 0, buffer.Length);
-                    return;
-                }
+                    try
+                    {
+                        apiResult = await scope.ServiceProvider.GetService<SovokClient>().GetAggregated(user, password, period);
+                    }
+                    catch (Exception ex)
+                    {
+                        context.Response.StatusCode = 400;
+                        var buffer = Encoding.UTF8.GetBytes(ex.Message);
+                        await context.Response.Body.WriteAsync(buffer, 0, buffer.Length);
+                        return;
+                    }
 
-                context.Response.Headers.Add("content-type", "application/xml");
-                using (var writer = new XmlTvWriter(context.Response.Body))
-                {
-                    await writer.Write(apiResult.settings, apiResult.channels, apiResult.epg);
+                    context.Response.Headers.Add("content-type", "application/xml");
+                    using (var writer = new XmlTvWriter(context.Response.Body))
+                    {
+                        await writer.Write(apiResult.settings, apiResult.channels, apiResult.epg);
+                    }
                 }
             });
         }
